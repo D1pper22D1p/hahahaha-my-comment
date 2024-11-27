@@ -9,7 +9,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     outputs:
-      lint-failed: ${{ steps.output.outputs.result }}
+      lint-failed: ${{ steps.lint.outputs.result }}
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
