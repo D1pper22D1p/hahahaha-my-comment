@@ -1,53 +1,61 @@
 name: CI
 
-on:  
-  push:  
+on:
+  push:
     branches: ["main"]
-  workflow_dispatch:  
+  workflow_dispatch:
 
-jobs:  
-  lint:    
-    runs-on: ubuntu-latest     
-    outputs:        
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    outputs:
       lint-failed: ${{ steps.output.outputs.result }}
-    steps:      
-      - uses: actions/checkout@v4      
-      - name: Install dependencies        
-        run: npm install      
-      - name: Check code style        
-        id: lint        
-        run: |          
-          npx prettier ./src/ --check        
-        continue-on-error: true      
-      - name: Set output        
-        id: output        
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm install
+      - name: Check code style
+        id: lint
+        run: |
+          npx prettier ./src/ --check
+        continue-on-error: true
+      - name: Set output
+        id: output
         run: echo "result=$(echo $?)" >> $GITHUB_ENV
 
-  remark:    
-    runs-on: ubuntu-latest     
-    needs: lint     
+  remark:
+    runs-on: ubuntu-latest
+    needs: lint
     if: needs.lint.outputs.lint-failed != '0'
-    steps:      
-      - uses: actions/checkout@v4      
-      - name: Install dependencies        
-        run: npm install      
-      - name: Fix code style        
-        run: npx prettier ./src/ --write  
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm install
+      - name: Fix code style
+        run: npx prettier ./src/ --write
 
-  build-true:    
-    runs-on: ubuntu-latest     
+  build-true:
+    runs-on: ubuntu-latest
     needs: lint
     if: needs.lint.outputs.lint-failed == '0'
-    steps:      
-      - uses: actions/checkout@v4      
-      - name: Run a one-line script        
-        run: echo Build successful!  
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run a one-line script
+        run: echo Build successful!
+      - name: Send Telegram message
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAMBOT_TOKEN }}/sendMessage" \
+          -d "chat_id=-4587543996&text=Build%20successful!" 
 
-  build-false:    
-    runs-on: ubuntu-latest     
+  build-false:
+    runs-on: ubuntu-latest
     needs: [lint, remark]
     if: needs.lint.outputs.lint-failed != '0'
-    steps:      
-      - uses: actions/checkout@v4      
-      - name: Run a one-line script        
-        run: echo Build failed due to style issues!  
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run a one-line script
+        run: echo Build failed with lint errors.
+      - name: Send Telegram message
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAMBOT_TOKEN }}/sendMessage" \
+          -d "chat_id=-4587543996&text=Build%20failed%20due%20to%20lint%20errors."
