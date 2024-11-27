@@ -8,6 +8,8 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    outputs:
+      lint-failed: ${{ steps.lint.outputs.result }}
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -15,12 +17,16 @@ jobs:
       - name: Check code style
         id: lint
         run: |
-          npx prettier ./src/ --check || echo 'lint-failed'
+          npx prettier ./src/ --check
+        continue-on-error: true
+      - name: Set output
+        id: output
+        run: echo "result=$(exho $?)" >> $GITHUB_ENV
 
   remark:
     runs-on: ubuntu-latest
     needs: lint
-    if: steps.lint.outputs.lint-failed != ''
+    if: lint.outputs.lint-failed != '0'
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
