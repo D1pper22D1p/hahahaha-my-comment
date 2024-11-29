@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build docker image
-        run: docker build -t ghcr.io/d1pper22d1p/hahahaha-my-comment/students-node-330:latest ./src/
+        run: docker build -t ghcr.io/d1pper22d1p/hahahaha-my-comment/students-node-330:latest ./
 
       - name: Login to github registry
         uses: docker/login-action@v3
