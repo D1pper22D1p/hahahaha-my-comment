@@ -40,24 +40,18 @@ jobs:
     if: needs.lint.outputs.lint-failed == '0'
     steps:
       - uses: actions/checkout@v4
-      - name: Log in to Docker Hub
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }} 
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}  
-        run: |
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-          if [ $? -ne 0 ]; then echo "Docker login failed"; exit 1; fi
-      - name: Build Docker image
-        run: |
-          docker build -t my-docker-image:latest .
-      - name: Push Docker image to Docker Hub
-        run: |
-          docker tag my-docker-image:latest my-docker-repo/my-docker-image:latest
-          docker push my-docker-repo/my-docker-image:latest
-      - name: Send Telegram message
-        run: |
-          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAMBOT_TOKEN }}/sendMessage" \
-          -d "chat_id=-4587543996&text=Build%20successful!" 
+      - name: Build docker image
+        run: docker build -t ghcr.io/d1pper22d1p/hahahaha-my-comment/students-node-330:latest ./src/
+
+      - name: Login to github registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push docker image
+        run: docker push ghcr.io/d1pper22d1p/hahahaha-my-comment/students-node-330:latest  
 
   build-false:
     runs-on: ubuntu-latest
