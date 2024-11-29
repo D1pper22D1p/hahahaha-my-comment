@@ -40,23 +40,23 @@ jobs:
     if: needs.lint.outputs.lint-failed == '0'
     steps:
       - uses: actions/checkout@v4
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}  # Use the secret for your Docker username
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}  # Use the secret for your Docker password
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       - name: Build Docker image
         run: |
           docker build -t my-docker-image:latest .
-      - name: Send Telegram message
-        run: |
-          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAMBOT_TOKEN }}/sendMessage" \
-          -d "chat_id=-4587543996&text=Build%20successful!" 
-      - name: Log in to Docker Hub
-        env:
-          DOCKER_USERNAME: ${{ github.actor }}
-          DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "${{ github.actor }}" --password-stdin
       - name: Push Docker image to Docker Hub
         run: |
           docker tag my-docker-image:latest my-docker-repo/my-docker-image:latest
           docker push my-docker-repo/my-docker-image:latest
+      - name: Send Telegram message
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAMBOT_TOKEN }}/sendMessage" \
+          -d "chat_id=-4587543996&text=Build%20successful!" 
 
   build-false:
     runs-on: ubuntu-latest
